@@ -1,6 +1,6 @@
 # Báo cáo Ngày 4 - Keypoint & Pose
 
-Họ tên: ______   Nhóm: ______   Ngày: ______
+Họ tên: Lê Đức Minh Quân   Nhóm: G03  Ngày: 16/9/2026
 
 > Cách dùng: copy file này thành `reports/REPORT.md`. Điền bằng số liệu do công cụ sinh ra;
 > không tự ước lượng hoặc sửa số trong file JSON.
@@ -13,19 +13,20 @@ thời gian gán / 20. -->
 
 | Chỉ số | Giá trị |
 | --- | ---: |
-| Số ảnh đã gán | |
-| Số skeleton | |
-| v=2 / v=1 / v=0 | |
-| Thời gian trung bình mỗi ảnh | |
+| Số ảnh đã gán | 20 |
+| Số skeleton | 29 |
+| v=2 / v=1 / v=0 | 2358/1104/31 |
+| Thời gian trung bình mỗi ảnh | 15.93 |
 
 Ba khớp có `%v=1` cao nhất (chép từ `reports/visibility_report.md`):
 
-1.
-2.
-3.
+1. left_ear (48%)
+2. right_ear (41%)
+3. right_wrist (31%)
 
 Chúng có đúng là những khớp bạn thấy khó gán nhất không? Nếu không, giải thích.
 
+Theo tôi các khớp left ear và right ear khá khó vì nhiều ảnh sẽ bị che khuất do tóc, mũ, quay mặt ... còn right wrist thỉnh thoảng bị che hoặc khó xác định chính xác vị trí vì tay nhiều khi bị che bởi quần áo hoặc vật dụng khác
 <!-- Trả lời 2–4 câu. Phân biệt “hay bị che” với “khó xác định vị trí giải phẫu”; nêu bằng
 chứng nhìn thấy thay vì chỉ nêu cảm giác. -->
 
@@ -36,45 +37,48 @@ lần sau rework. Đếm số phần tử trong từng danh sách lỗi, không 
 
 | Chỉ số | Trước rework | Sau rework |
 | --- | ---: | ---: |
-| OKS trung bình | | |
-| OKS@0.50 | | |
-| OKS@0.75 | | |
-| Lỗi `dao_trai_phai` | | |
-| Lỗi `nham_nguoi` | | |
-| Lỗi `xoa_khop_bi_che` | | |
+| OKS trung bình | 0.7971 | 0.8357 |
+| OKS@0.50 | 0.8264 | 0.8730 |
+| OKS@0.75 | 0.8966 | 0.9286 |
+| Lỗi `dao_trai_phai` | 1 | 0 |
+| Lỗi `nham_nguoi` | 0 | 0 |
+| Lỗi `xoa_khop_bi_che` | 0 | 0 |
 
 **Tôi đã sửa gì giữa hai lần chạy** (ghi cụ thể: ảnh nào, người thứ mấy, khớp nào):
 
 <!-- Mỗi dòng phải có: tên ảnh + người thứ mấy + keypoint + thao tác sửa. Không viết “đã sửa
 lại một số lỗi”. -->
 
--
--
--
+- train_04 Người 109 khớp right ankle đặt outside cho khớp
+- train_09 Người 199 tất cả các lớp right left đảo ngược các lớp trái phải với nhau
 
 **Lỗi đảo trái/phải của tôi xảy ra ở ảnh nào?** Ảnh đó dễ hay khó? Nếu là ảnh dễ,
 bạn nghĩ vì sao mình vẫn sai?
+
+Lỗi đảo trái phải ở ảnh train_09. Ảnh này dễ, nhưng trong quá trình làm tôi nhầm lẫn do họ quay cùng hường với tôi chứ không phải đối diện
 
 <!-- Nếu không có lỗi, ghi rõ “Không có lỗi đảo trái/phải trong toàn bộ 20 ảnh.” -->
 
 ## 3. Kiểm chéo
 
-Bạn cùng nhóm: ______
+Bạn cùng nhóm: gold
 
 Khớp lệch `%v=1` nhiều nhất giữa hai bảng đếm:
 
 | Khớp | Bạn | Họ | Lệch | Nguyên nhân (guideline hay gán sai?) |
 | --- | ---: | ---: | ---: | --- |
-| | | | | |
-| | | | | |
+| left_ear | 14 | 1 | +13 | Guideline: Bạn gán v=1 (Occluded) khi tai bị tóc/mũ che hoặc ở góc nghiêng, trong khi Gold coi là v=0 (Outside) hoặc không gán. |
+| right_ear | 12 | 4 | +8 | Guideline: Bạn gán v=1 cho tai phía xa khi quay mặt nghiêng, Gold ưu tiên v=0. |
+| right_wrist | 8 | 14 | -6 | Gold thường xác định được cổ tay mặc dù bị che một phần hoặc ở xa, trong khi bạn có xu hướng gán v=0 (Outside) sớm hơn khi có vật thể che phủ. |
 
 Luật mới đã bổ sung vào `GUIDELINE_MINI.md` sau khi thống nhất:
 
 <!-- Viết một rule kiểm chứng được: điều kiện nhìn thấy/căn cứ vị trí → chọn v=1 hoặc v=0.
 Không chỉ ghi “cẩn thận hơn khi gán”. -->
 
--
-
+- Chỉ gán nhãn cho con người không gán nhãn cho manacanh, búp bê, tượng...
+- left-wrist và right_wrist sẽ tính từ cổ tay, trong trường hợp áo dài không nhìn thấy cổ tay sẽ gán v=1 tại vị trí cổ tay áo
+- left-hip và right-hip sẽ tính từ vị trí hông, trong trường hợp áo dài không nhìn thấy hông sẽ gán v=1 tại vị trí hông áo
 ## 4. Model
 
 <!-- Chép số từ outputs/eval_model.json sau Chặng 6. “Chênh” = sau fine-tune trừ baseline;
