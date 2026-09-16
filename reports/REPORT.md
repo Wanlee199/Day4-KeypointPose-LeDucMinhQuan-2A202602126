@@ -86,11 +86,11 @@ Không chỉ ghi “cẩn thận hơn khi gán”. -->
 
 | Chỉ số | yolo26n-pose gốc | Sau fine-tune | Chênh |
 | --- | ---: | ---: | ---: |
-| pose_mAP50 | | | |
-| pose_mAP50-95 | | | |
-| pose_precision | | | |
-| pose_recall | | | |
-| box_mAP50-95 | | | |
+| pose_mAP50 | 0.8450 | 0.8450 | +0.0000 |
+| pose_mAP50-95 | 0.6853 | 0.6908 | +0.0055 |
+| pose_precision | 0.9734 | 0.9792 | +0.0058 |
+| pose_recall | 0.8462 | 0.8462 | +0.0000 |
+| box_mAP50-95 | 0.8119 | 0.8041 | -0.0078 |
 
 ### Trả lời năm câu hỏi ở cuối notebook
 
@@ -99,23 +99,33 @@ Không chỉ ghi “cẩn thận hơn khi gán”. -->
 
 1. `pose_mAP50-95` thay đổi bao nhiêu? Nếu nó giảm, 20 ảnh của bạn dạy được model
    điều gì mà COCO chưa dạy, và nó làm hỏng điều gì?
+   - **Trả lời:** `pose_mAP50-95` **tăng +0.0055** (từ `0.6853` lên `0.6908`, tức tăng ~0.55%). 
+   - **Giải thích:** Do `pose_mAP50-95` tăng (không giảm), 20 ảnh được gán nhãn kĩ lưỡng đã dạy cho model nhận biết tốt hơn vị trí các khớp bị che lấp (`v=1` occluded do trang phục áo dài/tóc/mũ) - trường hợp mà bộ dữ liệu COCO chuẩn chưa bao phủ đủ sâu. Độ chính xác `pose_precision` cũng tăng từ `0.9734` lên `0.9792` (+0.0058).
 
 2. `box_mAP` và `pose_mAP` chênh nhau bao nhiêu? Model tìm *người* dễ hơn hay tìm
    *khớp* dễ hơn? Vì sao?
+   - **Trả lời:** Sau fine-tune, `box_mAP50-95` đạt **0.8041** (80.41%) trong khi `pose_mAP50-95` đạt **0.6908** (69.08%), chênh lệch **0.1133 (11.33%)** (ở mức mAP50: `box_mAP50` 0.9600 so với `pose_mAP50` 0.8450, chênh 11.5%).
+   - **Kết luận:** Model tìm **người (box) dễ hơn nhiều** so với tìm **khớp (pose)**.
+   - **Lý do:** Bounding box của người bao phủ toàn bộ cơ thể, có diện tích lớn và đường biên dạng rõ ràng nên AI phát hiện rất dễ. Ngược lại, các khớp keypoint là những điểm mốc rất nhỏ, dễ bị che khuất bởi trang phục (áo dài), bị giấu sau thân mình/vật thể, hoặc nhầm lẫn trái/phải khi người xoay/nghiêng.
 
 3. Một ảnh test model đoán sai - gọi tên lỗi theo bốn loại của slide 43
    (lệch nhẹ / đảo trái/phải / nhầm người / trượt hẳn):
+   - **Trả lời:** Ở ảnh `train_13` (ảnh có OKS thấp nhất 0.537): Model bị lỗi **Nhầm người** (model phát hiện 2 người trong khi nhãn thực tế chỉ có 1 người), đồng thời gặp lỗi **Trượt hẳn** và **Lệch nhẹ** ở các khớp cổ tay/hông bị che bởi trang phục rộng.
 
 4. Ảnh nào có OKS thấp nhất giữa nhãn của bạn và model? Ai đúng, và bạn dựa vào đâu?
+   - **Trả lời:** Ảnh có OKS thấp nhất giữa nhãn của bạn và model là **`train_13`** với điểm OKS là **`0.537`**.
+   - **Đánh giá:** **Nhãn của bạn đúng hơn**. Dựa vào thực tế ảnh `train_13` chỉ có 1 người nằm trọn trong khung hình, nhưng model phát hiện thừa 1 bbox rác ở bên cạnh (`model 2 / bạn 1`) làm OKS bị tụt mạnh.
 
 5. Ảnh bạn gán tệ nhất có *cũng* là ảnh model đoán tệ nhất không? Nếu có, điều đó
    nói gì về bức ảnh đó?
+   - **Trả lời:** **Có.** Các ảnh bạn gặp cảnh báo/khó gán (như `train_13`, `train_03`) cũng chính là các ảnh model đạt điểm OKS thấp nhất.
+   - **Ý nghĩa:** Điều này chứng tỏ đây là những **bức ảnh vô cùng thách thức (edge case)** thực sự: người bị che khuất phần lớn cơ thể, bị góc chụp quá nghiêng hoặc quần áo quá rộng làm mờ ranh giới giải phẫu, khiến cả người gán nhãn thủ công lẫn model AI đều gặp khó khăn.
 
 ## 5. Một rule evidence bạn đã dùng
 
 Chọn một keypoint trong ảnh core mà bạn phải quyết định giữa `v=1` và `v=0`. Nêu ảnh, người,
 khớp, bằng chứng nhìn thấy và lý do chọn trạng thái đó trong 3-5 câu.
 
-<!-- Cấu trúc gợi ý: (1) train_XX + người thứ mấy + keypoint; (2) căn cứ thị giác như phần cơ
-thể liền kề, trang phục hoặc vật che; (3) vì sao khớp còn trong khung (v=1) hay đã ra khỏi
-khung (v=0). -->
+- **Ảnh & Khớp:** Trong ảnh `train_01.jpg`, người thứ 19, khớp `left_ear`.
+- **Căn cứ thị giác:** Người trong ảnh đứng quay nghiêng góc 3/4 và có phần tóc che khuất vùng tai bên trái. Mặc dù bề mặt tai không nhìn thấy trực tiếp, nhưng khuôn mặt, mắt trái và phần vành đầu vẫn hiển thị rõ ràng trong khung hình.
+- **Lý do chọn v=1 (Occluded):** Do vị trí tai trái hoàn toàn nằm bên trong khung hình (không bị mép ảnh cắt mất), ta hoàn toàn có thể tự tin ước lượng được vị trí giải phẫu tương quan của tai dựa trên vị trí mắt trái và chân tóc. Vì vậy chọn `v=1` (vẫn chấm vị trí ước lượng) thay vì `v=0` (Outside).
